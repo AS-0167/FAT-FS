@@ -9,12 +9,12 @@ uint32_t get_current_epoch_time(void);
 int limitation_error(void);
 int field_limitation_error(void);
 
-#include"meta_data.h"
-#include"disk_operations.h"
-#include"directory.h"
-#include"folder.h"
-#include"file.h"
-#include"fat.h"
+#include"./meta_data.h"
+#include"./disk_operations.h"
+#include"./directory.h"
+#include"./folder.h"
+#include"./file.h"
+#include"./fat.h"
 
 meta_data md;
 

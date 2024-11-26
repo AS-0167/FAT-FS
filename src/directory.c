@@ -8,6 +8,8 @@ directory initialize_directory(uint32_t num_entries) {
         exit(EXIT_FAILURE);
     }
     dir.no_of_entries = num_entries;
+
+    uint32_t time = get_current_epoch_time(); 
     
     dir.entries[0] = (dir_entry){
         .idx = 0,
@@ -20,9 +22,9 @@ directory initialize_directory(uint32_t num_entries) {
         .deleted = 0,
         .isfile = 0,
         .isValid = 1,
-        .creationEpoch = get_current_epoch_time(),
-        .accessEpoch = get_current_epoch_time(),
-        .modifyEpoch = get_current_epoch_time(),
+        .creationEpoch = time,
+        .accessEpoch = time,
+        .modifyEpoch = time,
     };
     
     for (uint32_t i = 1; i < num_entries; i++) {
