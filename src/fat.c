@@ -125,12 +125,9 @@ int8_t extend_link  (
                         uint32_t nxt
                     ) 
 {
-    if (fat->entries[prev] == UINT32_MAX) {
-        fat->entries[prev] = nxt;
-        fat->entries[nxt] = UINT32_MAX;
-        return 1;
-    }
-    return OPERATION_UNSUCCESSFUL();
+    fat->entries[prev] = nxt;
+    fat->entries[nxt] = UINT32_MAX;
+    return 1;
 }
 
 int8_t add_link   (
@@ -143,7 +140,7 @@ int8_t add_link   (
     uint32_t nxtFree = fat->entries[firstFree];
     if (nxtFree == UINT32_MAX) {
         perror("No space left !");
-        return 1;
+        return 0;
     }
     *(first_free) = nxtFree;
     return extend_link(fat, to_extend, firstFree);

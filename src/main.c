@@ -5,21 +5,10 @@
 #include "../include/folder.h"
 #include "../include/file.h"
 #include "../include/disk_operations.h"
-#include "../include/command_line.h""
-
-
-// #define DISK_SIZE 67108864                                       // 64 MB 
-// #define CLUSTER_SIZE 1024                                        // 1 KB
-// #define NO_OF_CLUSTERS DISK_SIZE / CLUSTER_SIZE                  // 64 K clusters
-// #define MAX_FILE_SIZE 128 * CLUSTER_SIZE                         // 128-clusters = 128*1k = 128 KB 
-// #define MAX_FILE_NAME 64                                         // 64 B
-// #define MAX_FULL_SIZE_FILES MAX_FILE_SIZE / DISK_SIZE            // 1/2 K files 
-// #define DIRECTORY_ENTERIES 2 * NO_OF_CLUSTERS                    // 2*64 K = 128 K
+#include "../include/command_line.h"
 
 /*
-
-! disk_size = 64MB
-
+Dir Enteries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ~ idx : 12 M enteries --- max val = 2^32 = 4294967296 --- len of directory
@@ -72,7 +61,7 @@
 
 
 
-! SEQUENCE OF DATA IN FILE
+! SEQUENCE OF DATA IN FILE (disk)
 
 ! 20 - bits : first free block
 ! FAT table 
@@ -137,6 +126,8 @@ int main() {
         create_folder(&directory, "folder3", 1);
         create_folder(&directory, "folder4", 2);
 
+        create_file(&directory, "file.txt", 0);
+
         write_fat(disk, &fat);
         read_fat(disk, &fat);
         print_fat(&fat);
@@ -150,6 +141,8 @@ int main() {
         while (1) {
 
             printf("\ncurrent dir : %s\n", current_folder_name);
+            current_folder_name[0] = '\0';
+
             char* f_name;
             int op_id = input_command(&f_name);
             
@@ -158,35 +151,52 @@ int main() {
                 parent_folder = current_folder_idx;
                 current_folder_idx = idx;
                 strncpy(current_folder_name, f_name, strlen(f_name));
-            } else if (op_id == CD_PARENT) {
+            } 
+            else if (op_id == CD_PARENT) {
                 current_folder_idx = parent_folder;
                 parent_folder = get_parent_by_idx(&directory, current_folder_idx);
                 char* name = get_name_by_idx(&directory, current_folder_idx);
                 strncpy(current_folder_name, name, strlen(name));
-            } else if (op_id == LS_SELF) {
+            } 
+            else if (op_id == LS_SELF) {
                 print_children(&directory, current_folder_idx);
-            } else if (op_id == LS_FOLDER) {
+            } 
+            else if (op_id == LS_FOLDER) {
                 uint32_t idx = find_entry_by_name(&directory, f_name, parent_folder);
                 print_children(&directory, idx);
-            } else if (op_id == CAT) {
-            
-            } else if (op_id == TOUCH) {
+            } 
+            else if (op_id == CAT) {
+                uint32_t idx = find_entry_by_name(&directory, f_name, current_folder_idx);
+                char* contents;
+                uint32_t size;
+                read_from_file(disk, &directory, &fat, idx, &contents, &size);
+                printf("\n%s", contents);
+            } 
+            else if (op_id == TOUCH) {
                 if (!create_file(&directory, f_name, current_folder_idx)) OPERATION_UNSUCCESSFUL();
-            } else if (op_id == VIM) {
-
-            } else if (op_id == MKDIR) {
+            } 
+            else if (op_id == VIM) {
+                uint32_t idx = find_entry_by_name(&directory, f_name, current_folder_idx);
+                char* content = "this is safanfl nlsn\nnkabkbvjhbekwb mnbskfwlb skwbev fw";
+                // uint32_t size = input_file_content(&content);
+                write_in_file(disk, &directory, &fat, &first_free, idx, &content, strlen(content));
+            } 
+            else if (op_id == MKDIR) {
                 if (!create_folder(&directory, f_name, current_folder_idx)) OPERATION_UNSUCCESSFUL();
-            } else if (op_id == RMDIR) {
+            } 
+            else if (op_id == RMDIR) {
                 uint32_t idx = find_entry_by_name(&directory, f_name, current_folder_idx);
                 delete_entry(&directory, idx);
-            } else if (op_id == RM) {
+            } 
+            else if (op_id == RM) {
                 uint32_t idx = find_entry_by_name(&directory, f_name, current_folder_idx);
                 delete_entry(&directory, idx);
-            } else {
+            } 
+            else {
                 perror("\nINVALID OPERATION !\n");
                 return 0;
             }
-            current_folder_name[0] = '\0';
+
         }
 
         fclose(disk);

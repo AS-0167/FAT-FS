@@ -71,6 +71,15 @@ int8_t insert_entry(directory* directory, dir_entry new_entry) {
     return update_ith_dir_entry(directory, idx, new_entry);
 }
 
+int8_t update_size(directory* directory, uint32_t idx, uint32_t new_size) {
+    if (directory->entries[idx].isValid && !directory->entries[idx].deleted && directory->entries[idx].isfile) {
+        directory->entries[idx].size = new_size;
+        return 1;
+    }
+    return OPERATION_UNSUCCESSFUL();
+}
+
+
 void delete_entry(directory* directory, uint32_t idx) {
     directory->entries[idx].deleted = 1;
 }
