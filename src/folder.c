@@ -1,7 +1,7 @@
 #include"../include/folder.h"
 
-int create_folder(directory* directory, char* f_name, uint32_t parent_idx) {
-    if (strlen(f_name) > md.MAX_FILE_NAME_IN_BYTES) return field_limitation_error();
+int8_t create_folder(directory* directory, char* f_name, uint32_t parent_idx) {
+    if (strlen(f_name) > md.MAX_FILE_NAME_IN_BYTES) return FIELD_LIMITATION_ERROR();
     uint32_t time = get_current_epoch_time();
     dir_entry new_entry = (dir_entry){
         .idx = 0,

@@ -1,8 +1,10 @@
 #pragma once
-#include"./utils.h"
+#include "utils.h"
+#include"meta_data.h"
 
 //🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸🧸
-extern meta_data md;
+struct meta_data;
+// extern meta_data md;
 
 typedef struct dir_entry {
     uint32_t idx : 21;                      //^ 21 bits 
@@ -21,7 +23,6 @@ typedef struct dir_entry {
 
 } dir_entry;
 
-
 typedef struct directory {
     dir_entry *entries; 
     uint32_t no_of_entries;      
@@ -29,14 +30,12 @@ typedef struct directory {
 
 directory initialize_directory(uint32_t num_entries);
 
-uint32_t find_idx(const directory* directory);
-void update_ith_dir_entry(directory *directory, uint32_t index, dir_entry new_entry);
-void insert_entry(directory* directory, dir_entry new_entry);
+uint32_t find_free_idx(const directory* directory);
+int8_t update_ith_dir_entry(directory *directory, uint32_t index, dir_entry new_entry);
+int8_t insert_entry(directory* directory, dir_entry new_entry);
 
-void write_directory(FILE *file, const directory *dir);
-
-void read_directory(FILE *file, directory *dir);
+int8_t write_directory(FILE *file, const directory *dir);
+int8_t read_directory(FILE *file, directory *dir);
 
 void print_directory_with_time(const directory* dir);
-
 void print_directory(const directory* dir);

@@ -39,7 +39,7 @@
 
 CC = gcc
 CFLAGS = -Wall -g
-SRC = src/fat.c src/disk_operations.c src/file.c src/folder.c src/directory.c src/utils.c src/main.c src/meta_data.c
+SRC = src/fat.c src/disk_operations.c src/file.c src/directory.c src/folder.c src/meta_data.c src/utils.c src/main.c src/command_line.c
 OBJ = $(SRC:.c=.o)
 EXEC = main
 

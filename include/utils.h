@@ -1,39 +1,32 @@
-#pragma once
+#ifndef UTILS_H
+#define UTILS_H
+
 #include<stdio.h>
 #include<stdlib.h>
 #include <stdint.h>
 #include<time.h>
 #include<string.h>
 
+
 uint32_t get_current_epoch_time(void);
-int limitation_error(void);
-int field_limitation_error(void);
 
-#include"./meta_data.h"
-#include"./disk_operations.h"
-#include"./directory.h"
-#include"./folder.h"
-#include"./file.h"
-#include"./fat.h"
+int8_t LIMITATION_ERROR(void);
+int8_t FIELD_LIMITATION_ERROR(void);
+int8_t FILE_ERROR(void);
+int8_t OPERATION_UNSUCCESSFUL(void);
+int8_t INVALID_VALUE(void);
+int8_t ALLOCATION_ERROR(void);
 
-meta_data md;
+void separate_filename_and_extension(const char *filename, char *name, char *extension);
 
-uint32_t get_current_epoch_time() {
-    time_t current_time = time(NULL);
 
-    if (current_time == ((time_t)-1)) {
-        perror("Error getting the current time");
-        return 0; 
-    }
+// #include "meta_data.h"
+// #include "disk_operations.h"
+// #include "directory.h"
+// #include "folder.h"
+// #include "file.h"
+// #include "fat.h"
 
-    return (uint32_t)current_time;
-}
 
-int limitation_error() {
-    perror("DISK LIMITATION EXCEEDED !");
-    return 0;
-}
-int field_limitation_error() {
-    perror("FEILD LIMITATION EXCEEDED !");
-    return 0;
-}
+
+#endif
