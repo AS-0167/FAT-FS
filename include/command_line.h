@@ -14,6 +14,6 @@
 #define RM 9
 #define INVALID -1
 
-int input_command(char* f_name);
+int input_command(char** f_name);
 int parse_command(const char *input, char *f_name);
 

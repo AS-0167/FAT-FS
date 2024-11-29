@@ -1,17 +1,18 @@
 #include "../include/command_line.h"
 
 
-int input_command(char* f_name) {
-
+int input_command(char **f_name) {
     char input[256];
-    f_name = (char*)malloc(256 * sizeof(char));
-    if (!f_name) return ALLOCATION_ERROR();
-    
+
+    // Allocate memory for f_name
+    *f_name = (char *)malloc(256 * sizeof(char));
+    if (!*f_name) return ALLOCATION_ERROR();
+
     printf("Enter a command: ");
     fgets(input, sizeof(input), stdin);
-    
+
     input[strcspn(input, "\n")] = '\0';
-    int op_id = parse_command(input, f_name);
+    int op_id = parse_command(input, *f_name);
     return op_id;
 }
 
@@ -20,7 +21,6 @@ int parse_command(const char *input, char *f_name) {
     char name[256];
     int matched = sscanf(input, "%s %255s", command, name);
 
-    // Clear f_name before using it
     f_name[0] = '\0';
 
     if (matched == 2) {

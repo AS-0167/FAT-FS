@@ -3,6 +3,7 @@
 #include "../include/directory.h"
 #include "../include/fat.h"
 #include "../include/folder.h"
+#include "../include/file.h"
 #include "../include/disk_operations.h"
 #include "../include/command_line.h""
 
@@ -114,9 +115,9 @@ int main() {
     uint8_t max_file_name_in_bytes = 64;        // 64 bytes
     uint16_t max_folders = 1024;                // 1 K folders
 
-    uint32_t current_folder = 0;
+    uint32_t current_folder_idx = 0;
     uint32_t parent_folder = 0; 
-    
+    char current_folder_name[256] = "root";
 
     const char* disk_name = "infinite_disk.bin";
 
@@ -136,36 +137,6 @@ int main() {
         create_folder(&directory, "folder3", 1);
         create_folder(&directory, "folder4", 2);
 
-        char* f_name;
-        int op_id = input_command(f_name);
-        
-        if (op_id == CD_FOLDER) {
-            
-        } else if (op_id == CD_PARENT) {
-
-        } else if (op_id == LS_SELF) {
-
-        } else if (op_id == LS_FOLDER) {
-        
-        } else if (op_id == CAT) {
-        
-        } else if (op_id == TOUCH) {
-        
-        } else if (op_id == VIM) {
-        
-        } else if (op_id == MKDIR) {
-        
-        } else if (op_id == RMDIR) {
-        
-        } else if (op_id == RM) {
-        
-        } else {
-            perror("\nINVALID OPERATION !\n");
-            return 0;
-        }
-
-        add_link(&fat, 5, &first_free);
-
         write_fat(disk, &fat);
         read_fat(disk, &fat);
         print_fat(&fat);
@@ -176,10 +147,51 @@ int main() {
         print_directory(&directory);
 
 
+        while (1) {
+
+            printf("\ncurrent dir : %s\n", current_folder_name);
+            char* f_name;
+            int op_id = input_command(&f_name);
+            
+            if (op_id == CD_FOLDER) {
+                uint32_t idx = find_entry_by_name(&directory, f_name, parent_folder);
+                parent_folder = current_folder_idx;
+                current_folder_idx = idx;
+                strncpy(current_folder_name, f_name, strlen(f_name));
+            } else if (op_id == CD_PARENT) {
+                current_folder_idx = parent_folder;
+                parent_folder = get_parent_by_idx(&directory, current_folder_idx);
+                char* name = get_name_by_idx(&directory, current_folder_idx);
+                strncpy(current_folder_name, name, strlen(name));
+            } else if (op_id == LS_SELF) {
+                print_children(&directory, current_folder_idx);
+            } else if (op_id == LS_FOLDER) {
+                uint32_t idx = find_entry_by_name(&directory, f_name, parent_folder);
+                print_children(&directory, idx);
+            } else if (op_id == CAT) {
+            
+            } else if (op_id == TOUCH) {
+                if (!create_file(&directory, f_name, current_folder_idx)) OPERATION_UNSUCCESSFUL();
+            } else if (op_id == VIM) {
+
+            } else if (op_id == MKDIR) {
+                if (!create_folder(&directory, f_name, current_folder_idx)) OPERATION_UNSUCCESSFUL();
+            } else if (op_id == RMDIR) {
+                uint32_t idx = find_entry_by_name(&directory, f_name, current_folder_idx);
+                delete_entry(&directory, idx);
+            } else if (op_id == RM) {
+                uint32_t idx = find_entry_by_name(&directory, f_name, current_folder_idx);
+                delete_entry(&directory, idx);
+            } else {
+                perror("\nINVALID OPERATION !\n");
+                return 0;
+            }
+            current_folder_name[0] = '\0';
+        }
+
         fclose(disk);
     }
-
-    
+  
 
     return 0;
 }
