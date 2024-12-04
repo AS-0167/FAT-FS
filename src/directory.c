@@ -6,10 +6,8 @@ extern meta_data md;
 directory initialize_directory(uint32_t num_entries) {
     directory dir;
     dir.entries = (dir_entry *)malloc(num_entries * sizeof(dir_entry));
-    if (!dir.entries) {
-        perror("Failed to allocate memory for directory entries");
-        exit(EXIT_FAILURE);
-    }
+    if (!dir.entries) ALLOCATION_ERROR();
+
     dir.no_of_entries = num_entries;
 
     uint32_t time = get_current_epoch_time(); 
@@ -37,7 +35,7 @@ directory initialize_directory(uint32_t num_entries) {
             .name = "",
             .ext = "\0",
             .size = 0,
-            .firstClstr = 0,
+            .firstClstr = UINT32_MAX,
             .accessbit = 0,
             .deleted = 0,
             .isfile = 0,
@@ -78,31 +76,64 @@ int8_t update_size(directory* directory, uint32_t idx, uint32_t new_size) {
     }
     return OPERATION_UNSUCCESSFUL();
 }
-
+int8_t get_size(directory* directory, uint32_t idx, uint32_t* size) {
+    if (directory->entries[idx].isValid && !directory->entries[idx].deleted && directory->entries[idx].isfile) {
+        *size = directory->entries[idx].size;
+        return 1;
+    }
+    return OPERATION_UNSUCCESSFUL();
+}
 
 void delete_entry(directory* directory, uint32_t idx) {
     directory->entries[idx].deleted = 1;
 }
+void rm_dir(directory* directory, uint32_t idx) {
+    uint32_t size = 0;
+    dir_entry* children = get_cildren(directory, idx, &size);
+    if (size == 0) return;
+    for (uint32_t i = 0; i < size; i++) {
+        rm_dir(directory, children[i].idx);
+        delete_entry(directory, children[i].idx);
+    }
+    delete_entry(directory, idx);
+}
+
 
 uint32_t find_entry_by_name(directory *dir, const char *filename, uint32_t parent_idx) {
     char input_name[256];
     char input_ext[4];
     separate_filename_and_extension(filename, input_name, input_ext);
 
-    FOR_EACH_ENTRY(dir, i) {
+    // FOR_EACH_ENTRY(dir, i) {
+    for (uint32_t i = 0; i < dir->no_of_entries; i++) {
         dir_entry *entry = &(dir->entries[i]);
-        if (entry->isValid && !entry->deleted && entry->parentIdx == parent_idx) {
+            if (entry->parentIdx == parent_idx) {
+        // if (entry->isValid && !entry->deleted && entry->parentIdx == parent_idx) {
             if (strcmp(entry->name, input_name) == 0 && strcmp(entry->ext, input_ext) == 0) {
+                printf("%d  , %d", entry->parentIdx, parent_idx);
                 return entry->idx;
             }
-        }
+            }
+        // }
     }
+    // }
     perror("Entry not found in directory !");
     return UINT32_MAX;  
 }
 
-void print_children(directory *dir, uint32_t parent_idx) {
+dir_entry* get_cildren(directory* directory, uint32_t parent_idx, uint32_t* size) {
+    dir_entry* children = (dir_entry*)malloc(directory->no_of_entries * sizeof(dir_entry));
+    *size = 0;
+    FOR_EACH_ENTRY(directory, i) {
+        dir_entry *entry = &(directory->entries[i]);
+        if (entry->isValid && !entry->deleted && (entry->parentIdx == parent_idx)) {
+            children[*size++] = *entry;
+        }
+    }
+    return children;
+}
 
+void print_children(directory *dir, uint32_t parent_idx) {
     print_dir_entry_table_header();
     FOR_EACH_ENTRY(dir, i) {
         dir_entry *entry = &(dir->entries[i]);
@@ -133,7 +164,7 @@ int8_t write_directory(FILE *file, const directory *dir) {
     if (clstr.buffer == NULL) return ALLOCATION_ERROR();
 
     size_t entries_per_cluster = md.CLUSTER_SIZE / md.DIR_ENTRY_SIZE_IN_BYTES;
-    uint64_t offset = md.FAT_SIZE_IN_CLSTRS * md.CLUSTER_SIZE;
+    uint64_t offset = (md.FAT_SIZE_IN_CLSTRS * md.CLUSTER_SIZE);
 
     for (uint32_t clstr_idx = 0; clstr_idx * entries_per_cluster < dir->no_of_entries; clstr_idx++) {
         memset(clstr.buffer, 0, md.CLUSTER_SIZE);
@@ -159,8 +190,13 @@ int8_t write_directory(FILE *file, const directory *dir) {
     printf("Directory written successfully to the file starting at offset %u.\n", md.FAT_SIZE_IN_CLSTRS);
     return 1;
 }
-int8_t read_directory(FILE *file, directory *dir) {
+int8_t read_directory(FILE *file, directory *dir, uint32_t dir_entries) {
     if (file == NULL) return FILE_ERROR();
+
+    dir->entries = (dir_entry *)malloc(dir_entries * sizeof(dir_entry));
+    if (!dir->entries) return ALLOCATION_ERROR();
+    dir->no_of_entries = dir_entries;
+
     if (dir == NULL || dir->entries == NULL) return FIELD_LIMITATION_ERROR();
 
     if (md.DIR_ENTRY_SIZE_IN_BYTES != sizeof(dir_entry)) return INVALID_VALUE();

@@ -12,6 +12,7 @@
 #define MKDIR 7
 #define RMDIR 8
 #define RM 9
+#define _EXIT 10
 #define INVALID -1
 
 int input_command(char** f_name);

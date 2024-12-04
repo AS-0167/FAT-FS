@@ -70,6 +70,7 @@ void print_meta_data(const meta_data* md) {
     printf("TOTAL_CLSTRS: %lu \n", (unsigned long)md->TOTAL_CLSTRS);
     fflush(stdout);
 }
+
 int8_t write_meta_data_in_file(const char *file_name, const meta_data *data) {
     FILE *file = fopen(file_name, "wb");
     if (!file) {
@@ -86,4 +87,19 @@ int8_t write_meta_data_in_file(const char *file_name, const meta_data *data) {
 
     fclose(file);
     return 0;
+}
+
+int8_t read_meta_data_from_file(const char *file_name, meta_data *data) {
+    FILE *file = fopen(file_name, "rb");
+    if (!file) return FILE_ERROR();
+
+    size_t bytes_read = fread(data, sizeof(meta_data), 1, file);
+    if (bytes_read != 1) {
+        perror("Failed to read metadata from file");
+        fclose(file);
+        return 0;
+    }
+
+    fclose(file);
+    return 1;  // Successfully read metadata
 }

@@ -46,7 +46,7 @@ extern meta_data md;
 int8_t compute_meta_data(meta_data* md, __uint128_t disk_size, uint64_t cluster_size, uint16_t max_file_size_in_clusters, uint8_t max_file_name_in_bytes, uint16_t max_folders);
 void print_meta_data(const meta_data* md);
 int8_t write_meta_data_in_file(const char *file_name, const meta_data *data);
-
+int8_t read_meta_data_from_file(const char *file_name, meta_data *data);
 /*
 
 

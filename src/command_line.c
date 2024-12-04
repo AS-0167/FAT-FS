@@ -4,11 +4,11 @@
 int input_command(char **f_name) {
     char input[256];
 
-    // Allocate memory for f_name
     *f_name = (char *)malloc(256 * sizeof(char));
     if (!*f_name) return ALLOCATION_ERROR();
 
-    printf("Enter a command: ");
+    fflush(stdin);
+    setbuf(stdin, NULL);
     fgets(input, sizeof(input), stdin);
 
     input[strcspn(input, "\n")] = '\0';
@@ -53,6 +53,8 @@ int parse_command(const char *input, char *f_name) {
         return RMDIR;
     } else if (strcmp(command, "rm") == 0) {
         return RM;
+    } else if (strcmp(command, "exit") == 0) {
+        return _EXIT;
     }
     return INVALID;
 }

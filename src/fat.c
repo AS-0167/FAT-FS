@@ -17,7 +17,7 @@ FAT initialize_fat  (
 {
     FAT fat;
     fat.no_of_entries = fat_entries;
-    fat.entries = (FAT *)malloc(fat_entries * sizeof(FAT));   
+    fat.entries = (uint32_t *)malloc(fat_entries * sizeof(uint32_t));   
     for (uint32_t i = 0; i < fat_entries; i++) {
         fat.entries[i] = i + 1;
     }
@@ -40,7 +40,7 @@ int8_t write_fat    (
     if (clstr.buffer == NULL) return ALLOCATION_ERROR(); 
 
     size_t entries_per_cluster = md.CLUSTER_SIZE / sizeof(uint32_t);
-    uint64_t offset = 0;
+    uint64_t offset = md.CLUSTER_SIZE;
 
     for (uint32_t clstr_idx = 0; clstr_idx * entries_per_cluster < fat->no_of_entries; clstr_idx++) {
         memset(clstr.buffer, 0, md.CLUSTER_SIZE);
@@ -54,14 +54,13 @@ int8_t write_fat    (
                 break;
             }
         }
-
+        // printf("\nfat offset : %d", offset);
         if (disk_write(&clstr, file, offset) < 0) {
             free(clstr.buffer);
             return OPERATION_UNSUCCESSFUL();
         }
         offset += md.CLUSTER_SIZE;
     }
-
     free(clstr.buffer);
     printf("FAT written successfully to the file.\n");
     return 1;
@@ -69,11 +68,16 @@ int8_t write_fat    (
 
 int8_t read_fat (   
                     FILE *file, 
-                    FAT *fat
+                    FAT *fat, 
+                    uint32_t fat_entries
                 ) 
 {
     if (file == NULL) return FILE_ERROR();
-    if (fat == NULL || fat->entries == NULL) return INVALID_VALUE();
+
+    fat->no_of_entries = fat_entries;
+    fat->entries = (uint32_t *)malloc(fat->no_of_entries * sizeof(uint32_t));   
+
+    if (fat->entries == NULL) return INVALID_VALUE();
     if (md.CLUSTER_SIZE == 0 || md.CLUSTER_SIZE > (1 << 20)) return FIELD_LIMITATION_ERROR();
 
     cluster clstr;
@@ -82,7 +86,7 @@ int8_t read_fat (
     if (clstr.buffer == NULL) return ALLOCATION_ERROR();
 
     size_t entries_per_cluster = md.CLUSTER_SIZE / sizeof(uint32_t);
-    uint64_t offset = 0;
+    uint64_t offset = md.CLUSTER_SIZE;
     fat->no_of_entries = 0;
 
     for (uint32_t clstr_idx = 0; clstr_idx * entries_per_cluster < md.FAT_ENTRIES; clstr_idx++) {
@@ -131,19 +135,21 @@ int8_t extend_link  (
 }
 
 int8_t add_link   (
-                    FAT* fat, 
+                    FAT* fat, uint32_t prev_extended,
                     uint32_t to_extend, 
                     uint32_t* first_free
                 ) 
 {
-    uint32_t firstFree = *(first_free);
-    uint32_t nxtFree = fat->entries[firstFree];
-    if (nxtFree == UINT32_MAX) {
-        perror("No space left !");
+    if (*first_free == UINT32_MAX) {
+        perror("NO space left in disk !");
         return 0;
     }
+    uint32_t firstFree = *(first_free);
+    uint32_t nxtFree = fat->entries[firstFree];
     *(first_free) = nxtFree;
-    return extend_link(fat, to_extend, firstFree);
+    fat->entries[prev_extended] = firstFree;
+    fat->entries[firstFree] = UINT32_MAX;
+    return 1;
 }
 
 
@@ -157,7 +163,7 @@ void print_fat  (
     // }
     
     for (uint32_t i = 0; i < 20; i++) {
-        printf("%d : %d -> ", i, fat->entries[i]);
+        printf("%d -> %d -- ", i, fat->entries[i]);
     }
 }
 

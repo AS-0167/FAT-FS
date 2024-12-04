@@ -36,16 +36,20 @@ int8_t update_ith_dir_entry(directory *directory, uint32_t index, dir_entry new_
 int8_t insert_entry(directory* directory, dir_entry new_entry);
 
 int8_t update_size(directory* directory, uint32_t idx, uint32_t size);
+int8_t get_size(directory* directory, uint32_t idx, uint32_t* size);
 
 void delete_entry(directory* directory, uint32_t idx);
+void rm_dir(directory* directory, uint32_t idx);
 
 uint32_t find_entry_by_name(directory *dir, const char *filename, uint32_t parent_idx);
 uint32_t get_parent_by_idx(directory* directory, uint32_t my_idx);
 char* get_name_by_idx(directory* directory, uint32_t my_idx);
+
 void print_children(directory *dir, uint32_t parent_idx);
+dir_entry* get_cildren(directory* directory, uint32_t parent_idx, uint32_t* size);
 
 int8_t write_directory(FILE *file, const directory *dir);
-int8_t read_directory(FILE *file, directory *dir);
+int8_t read_directory(FILE *file, directory *dir, uint32_t dir_entries);
 
 void print_directory_with_time(const directory* dir);
 void print_directory(const directory* dir);
